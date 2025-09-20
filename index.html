@@ -229,11 +229,11 @@ if ('serviceWorker' in navigator) {
           <div class="row" style="margin-top:16px">
             <div>
               <label>Diskussion (Sek.)</label>
-              <input id="secs" type="number" min="30" max="600" value="${game.options.discussSeconds}">
+              <input id="secs" type="number" min="3" max="10" value="${game.options.discussSeconds}">
             </div>
             <div>
               <label>Runden</label>
-              <input id="rounds" type="number" min="1" max="10" value="${game.options.rounds}">
+              <input id="rounds" type="number" min="1" max="5" value="${game.options.rounds}">
             </div>
           </div>
           <button style="margin-top:18px" id="startBtn" ${game.players.length<3?'disabled':''}>Spiel starten</button>
