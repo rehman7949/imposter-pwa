@@ -1,28 +1,20 @@
 {
-  "name": "Imposter",
+  "name": "Imposter – Partyspiel",
   "short_name": "Imposter",
+  "description": "Social-Deduction Partyspiel als PWA. Lobby → Reveal → Diskussion → Abstimmung → Ergebnis.",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0e0f13",
   "theme_color": "#0e0f13",
+  "categories": ["games", "entertainment"],
   "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/apple-touch-icon-180.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/apple-touch-icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Neue Runde", "url": "/index.html#new", "description": "Direkt zur Lobby" }
   ]
 }
