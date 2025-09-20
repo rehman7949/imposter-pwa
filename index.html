@@ -317,11 +317,20 @@
             <div class="pill" style="margin-top:6px">Nur für dich sichtbar</div>
           </div>
         `;
-        c.querySelector('#showBtn').onclick=()=>{
-          c.querySelector('#wordBox').style.display='block';
-          const isImp = current.id===game.imposterId;
-          c.querySelector('#wordVal').textContent = isImp ? game.topic.imposter : game.topic.common;
+        c.querySelector('#showBtn').onclick = () => {
+        c.querySelector('#wordBox').style.display = 'block';
+          const isImp = current.id === game.imposterId;
+          if (isImp) {
+        c.querySelector('#wordVal').innerHTML = `
+          <div>${game.topic.imposter}</div>
+          <div style="margin-top:10px; font-size:14px; color:#ff6b6b; font-weight:700;">
+            ⚠️ Du bist der Imposter!
+          </div>`;
+          } else {
+            c.querySelector('#wordVal').textContent = game.topic.common;
+          }
         };
+
         c.querySelector('#doneBtn').onclick=()=>{
           game.revealIndex++;
           if (game.revealIndex>=game.players.length){
