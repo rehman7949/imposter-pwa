@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Imposter – PWA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e0f13">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; background:#0e0f13; color:#fff; min-height:100vh; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 24px 24px 24px; }
+    h1,h2 { margin: 0 0 12px; }
+    .card { background:#181a20; border:1px solid #2a2e37; border-radius:12px; padding:20px; margin:16px 0; }
+    label { display:block; margin:8px 0 4px; font-weight:600; }
+    input,select,button { width:100%; padding:12px; border-radius:10px; border:1px solid #2a2e37; background:#101218; color:#fff; }
+    button { cursor:pointer; font-weight:700; }
+    .row { display:flex; gap:12px; }
+    .row > * { flex:1; }
+    .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#222631; font-size:12px; margin-right:8px; }
+    .center { text-align:center; }
+    .big { font-size: 42px; letter-spacing: .5px; margin: 18px 0; }
+    .muted { color:#b7bec9; font-size: 14px; }
+    .timer { font-variant-numeric: tabular-nums; font-size: 22px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    /* iOS install hint overlay */
+    #install-hint {
+      position: fixed; inset: 0; display:none; align-items:center; justify-content:center;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(3px); z-index: 9999;
+    }
+    #install-hint .box {
+      background:#181a20; border:1px solid #2a2e37; border-radius:14px; padding:18px; max-width: 520px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🕵️‍♂️ Imposter (PWA)</h1>
+  <div id="app"></div>
+</div>
+
+<!-- iOS install overlay -->
+<div id="install-hint">
+  <div class="box">
+    <h3>Auf dem iPhone installieren</h3>
+    <p class="muted">Tippe unten auf das <b>Teilen-Symbol</b> und wähle <b>„Zum Home-Bildschirm“</b>, um die App zu installieren.</p>
+    <button id="closeHint">Verstanden</button>
+  </div>
+</div>
+
+<script>
+// PWA bootstrap
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js');
+  });
+}
+// iOS install hint (only when not standalone)
+(function(){
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true; // iOS only
+  if (isIOS && !isStandalone) {
+    const hint = document.getElementById('install-hint');
+    hint.style.display = 'flex';
+    document.getElementById('closeHint').onclick = () => hint.style.display = 'none';
+  }
+})();
+</script>
+
+<script>
+(function() {
+  // --- Game State ---
+  const State = {
+    LOBBY: 'LOBBY',
+    REVEAL: 'REVEAL',
+    DISCUSS: 'DISCUSS',
+    VOTE: 'VOTE',
+    RESULT: 'RESULT'
+  };
+
+  let game = {
+    state: State.LOBBY,
+    players: [],
+    topic: null,
+    imposterId: null,
+    revealIndex: 0,
+    discussEndsAt: 0,
+    votes: {},
+    options: {
+      discussSeconds: 120,
+      rounds: 1
+    }
+  };
+
+  // Topics (demo)
+  const TOPICS = [
+  { common: "Islam", imposter: "Horizont" },
+  { common: "Iman", imposter: "Wurzeln" },
+  { common: "Allah", imposter: "Unsichtbar" },
+  { common: "Koran", imposter: "Nacht" },
+  { common: "Sunnah", imposter: "Spuren" },
+  { common: "Hadith", imposter: "Ketten" },
+  { common: "Tauhid", imposter: "Spitze" },
+  { common: "Schahada", imposter: "Tor" },
+  { common: "Prophet Muhammad ﷺ", imposter: "Mond" },
+  { common: "Adam", imposter: "Ton" },
+  { common: "Nuh", imposter: "Bogen" },
+  { common: "Ibrahim", imposter: "Flammen" },
+  { common: "Musa", imposter: "Meer" },
+  { common: "Isa", imposter: "Tisch" },
+  { common: "Yusuf", imposter: "Hemd" },
+  { common: "Yunus", imposter: "Bauch" },
+  { common: "Ayyub", imposter: "Geduld" },
+  { common: "Maryam", imposter: "Palme" },
+  { common: "Ismail", imposter: "Messer" },
+  { common: "Dawud", imposter: "Stimme" },
+
+  { common: "Kaaba", imposter: "Schwarz" },
+  { common: "Mekka", imposter: "Quelle" },
+  { common: "Medina", imposter: "Oase" },
+  { common: "Jerusalem", imposter: "Kette" },
+  { common: "Arafat", imposter: "Schatten" },
+  { common: "Mina", imposter: "Zelte" },
+  { common: "Moschee", imposter: "Teppiche" },
+  { common: "Minbar", imposter: "Stufen" },
+  { common: "Mihrab", imposter: "Bogen" },
+  { common: "Kibla", imposter: "Pfeil" },
+  { common: "Masjid al-Haram", imposter: "Kreis" },
+  { common: "Masjid al-Aqsa", imposter: "Felsen" },
+  { common: "Zamzam", imposter: "Kind" },
+  { common: "Uhud", imposter: "Rot" },
+  { common: "Badr", imposter: "313" },
+  { common: "Kufa", imposter: "Brief" },
+  { common: "Damaskus", imposter: "Licht" },
+  { common: "Bagdad", imposter: "Haus" },
+  { common: "Kairo", imposter: "Nil" },
+  { common: "Granada", imposter: "Bogen" },
+
+  { common: "Ramadan", imposter: "Schlüssel" },
+  { common: "Schawwal", imposter: "Sechs" },
+  { common: "Dhū l-Hiddscha", imposter: "Weiß" },
+  { common: "Muharram", imposter: "Tränen" },
+  { common: "Safar", imposter: "Gelb" },
+  { common: "Rabiʿ al-Awwal", imposter: "Geburt" },
+  { common: "Lailatul Qadr", imposter: "1000" },
+  { common: "Jumuʿa", imposter: "Versammlung" },
+  { common: "Aschura", imposter: "Durst" },
+  { common: "Laylat al-Miraj", imposter: "Reise" },
+  { common: "Iftar", imposter: "Datteln" },
+  { common: "Suhoor", imposter: "Finsternis" },
+  { common: "Eid al-Fitr", imposter: "Neues Kleid" },
+  { common: "Eid al-Adha", imposter: "Blut" },
+  { common: "Mawlid", imposter: "Kerzen" },
+  { common: "Tarawih", imposter: "Nächte" },
+  { common: "Tahajjud", imposter: "Stille" },
+  { common: "Fajr", imposter: "Rot" },
+  { common: "Maghrib", imposter: "Schatten" },
+  { common: "Isha", imposter: "Dunkelheit" },
+
+  { common: "Salat", imposter: "Linie" },
+  { common: "Zakat", imposter: "Gewicht" },
+  { common: "Sawm", imposter: "Durst" },
+  { common: "Hadsch", imposter: "Steine" },
+  { common: "Umrah", imposter: "Kreis" },
+  { common: "Adhan", imposter: "Türme" },
+  { common: "Iqama", imposter: "Aufstehen" },
+  { common: "Dua", imposter: "Handflächen" },
+  { common: "Wudu", imposter: "Tropfen" },
+  { common: "Ghusl", imposter: "Quelle" },
+  { common: "Hijab", imposter: "Grenze" },
+  { common: "Niqab", imposter: "Schleier" },
+  { common: "Kufi", imposter: "Rund" },
+  { common: "Tasbih", imposter: "Perlen" },
+  { common: "Muezzin", imposter: "Stimme" },
+  { common: "Sadaqa", imposter: "Lächeln" },
+  { common: "Fitra", imposter: "Natur" },
+  { common: "Halal", imposter: "Grün" },
+  { common: "Haram", imposter: "Rot" },
+  { common: "Awrah", imposter: "Schutz" },
+
+  { common: "Sabr", imposter: "Stein" },
+  { common: "Schukr", imposter: "Ernte" },
+  { common: "Rahma", imposter: "Regen" },
+  { common: "Adl", imposter: "Waage" },
+  { common: "Ikhlas", imposter: "Spiegel" },
+  { common: "Jihad", imposter: "Pfad" },
+  { common: "Shura", imposter: "Kreis" },
+  { common: "Bismillah", imposter: "Beginn" },
+  { common: "Alhamdulillah", imposter: "Ende" },
+  { common: "InshaAllah", imposter: "Morgen" },
+  { common: "Astaghfirullah", imposter: "Staub" },
+  { common: "SubhanAllah", imposter: "Sterne" },
+  { common: "Takbir", imposter: "Echo" },
+  { common: "Hijra", imposter: "Spuren" },
+  { common: "Badr", imposter: "Wüste" },
+  { common: "Uhud", imposter: "Berg" },
+  { common: "Karbala", imposter: "Asche" },
+  { common: "Andalus", imposter: "Gärten" },
+  { common: "Osmanisches Reich", imposter: "Halbmond" },
+  { common: "Sultan", imposter: "Thron" }
+  ];
+
+  const $ = (sel) => document.querySelector(sel);
+  function uid() { return Math.random().toString(36).slice(2,10); }
+  function now(){ return Date.now(); }
+  function fmt(s){ const m = Math.floor(s/60), r=s%60; return `${m}:${String(r).padStart(2,'0')}`; }
+
+  function render() {
+    const app = $('#app');
+    app.innerHTML = '';
+    const c = document.createElement('div');
+    c.className = 'card';
+    app.appendChild(c);
+
+    if (game.state === State.LOBBY) {
+      c.innerHTML = `
+        <h2>Lobby</h2>
+        <div class="muted">3–12 Spieler · 1 Imposter</div>
+        <div style="margin-top:12px">
+          <label>Spieler hinzufügen</label>
+          <div class="row">
+            <input id="nameInput" placeholder="Name eingeben..." />
+            <button id="addBtn">Hinzufügen</button>
+          </div>
+          <div style="margin-top:10px" id="players"></div>
+          <div class="row" style="margin-top:16px">
+            <div>
+              <label>Diskussion (Sek.)</label>
+              <input id="secs" type="number" min="30" max="600" value="${game.options.discussSeconds}">
+            </div>
+            <div>
+              <label>Runden</label>
+              <input id="rounds" type="number" min="1" max="10" value="${game.options.rounds}">
+            </div>
+          </div>
+          <button style="margin-top:18px" id="startBtn" ${game.players.length<3?'disabled':''}>Spiel starten</button>
+        </div>
+      `;
+      const list = document.createElement('div');
+      list.className = 'grid';
+      game.players.forEach(p=>{
+        const tag = document.createElement('div');
+        tag.className = 'pill';
+        tag.textContent = p.name;
+        tag.style.background = '#2a3242';
+        list.appendChild(tag);
+      });
+      c.querySelector('#players').appendChild(list);
+
+      c.querySelector('#addBtn').onclick = () => {
+        const val = c.querySelector('#nameInput').value.trim();
+        if (!val) return;
+        game.players.push({ id: uid(), name: val });
+        render();
+      };
+      c.querySelector('#secs').onchange = (e) => game.options.discussSeconds = Math.max(30, Math.min(600, +e.target.value||120));
+      c.querySelector('#rounds').onchange = (e) => game.options.rounds = Math.max(1, Math.min(10, +e.target.value||1));
+      c.querySelector('#startBtn').onclick = startGame;
+
+    } else if (game.state === State.REVEAL) {
+      const current = game.players[game.revealIndex];
+      c.innerHTML = `
+        <h2>Rollen zeigen</h2>
+        <div class="muted">Reiche das Gerät an <b>${current.name}</b> weiter und tippe „Wort anzeigen“.</div>
+        <button id="showBtn" style="margin-top:16px">Wort anzeigen</button>
+        <div id="wordBox" style="display:none" class="center">
+          <div class="big" id="wordVal"></div>
+          <div class="muted">Merke es dir. Tippe danach auf „Fertig“ und gib weiter.</div>
+          <button id="doneBtn" style="margin-top:16px">Fertig</button>
+        </div>
+      `;
+      c.querySelector('#showBtn').onclick = () => {
+        c.querySelector('#wordBox').style.display = 'block';
+        const isImposter = current.id === game.imposterId;
+        c.querySelector('#wordVal').textContent = isImposter ? game.topic.imposter : game.topic.common;
+      };
+      c.querySelector('#doneBtn').onclick = () => {
+        game.revealIndex++;
+        if (game.revealIndex >= game.players.length) {
+          game.state = State.DISCUSS;
+          game.discussEndsAt = now() + game.options.discussSeconds*1000;
+        } 
+        render();
+      };
+
+    } else if (game.state === State.DISCUSS) {
+      const secsLeft = Math.max(0, Math.ceil((game.discussEndsAt - now())/1000));
+      c.innerHTML = `
+        <h2>Diskussion</h2>
+        <div class="muted">Beschreibt euer Wort, aber verratet es nicht direkt. Versucht den/die Imposter zu entlarven.</div>
+        <div class="center" style="margin:18px 0">
+          <div class="timer" id="timer">${fmt(secsLeft)}</div>
+        </div>
+        <button id="toVoteBtn">${secsLeft===0?'Zur Abstimmung':'Vorzeitig zur Abstimmung'}</button>
+      `;
+      const interval = setInterval(()=>{
+        if (game.state !== State.DISCUSS) return clearInterval(interval);
+        const el = $('#timer');
+        if (!el) return clearInterval(interval);
+        const left = Math.max(0, Math.ceil((game.discussEndsAt - now())/1000));
+        el.textContent = fmt(left);
+        if (left<=0) { clearInterval(interval); }
+      }, 250);
+      c.querySelector('#toVoteBtn').onclick = () => { game.state = State.VOTE; render(); };
+
+    } else if (game.state === State.VOTE) {
+      c.innerHTML = `
+        <h2>Abstimmung</h2>
+        <div class="muted">Stimmt nun geheim ab. Tippe der Reihe nach für jede Person.</div>
+        <div id="voteGrid" class="grid" style="margin-top:12px"></div>
+        <button id="finishBtn" style="margin-top:18px" ${Object.keys(game.votes).length<game.players.length?'disabled':''}>Abstimmung abschließen</button>
+      `;
+      const grid = c.querySelector('#voteGrid');
+      game.players.forEach(voter=>{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.style.background = '#12151c';
+        div.innerHTML = `
+          <div><b>${voter.name}</b></div>
+          <select id="sel-${voter.id}">
+            <option value="">— wählt verdächtig —</option>
+            ${game.players.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+          </select>
+        `;
+        grid.appendChild(div);
+        const sel = div.querySelector(`#sel-${voter.id}`);
+        sel.value = game.votes[voter.id] || '';
+        sel.onchange = () => {
+          const v = sel.value;
+          if (v === voter.id) { alert("Du kannst nicht für dich selbst stimmen."); sel.value = game.votes[voter.id] || ''; return; }
+          if (v) game.votes[voter.id] = v; else delete game.votes[voter.id];
+          document.querySelector('#finishBtn').disabled = Object.keys(game.votes).length < game.players.length;
+        };
+      });
+      c.querySelector('#finishBtn').onclick = computeResult;
+
+    } else if (game.state === State.RESULT) {
+      const tally = tallyVotes(game.votes);
+      const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0] || [null,0];
+      const accusedId = top[0];
+      const accused = game.players.find(p=>p.id===accusedId);
+      const imp = game.players.find(p=>p.id===game.imposterId);
+      const win = accusedId === game.imposterId ? 'Crew gewinnt 🎉' : 'Imposter gewinnt 😈';
+
+      c.innerHTML = `
+        <h2>Ergebnis</h2>
+        <div class="pill">Thema (Crew): ${game.topic.common}</div>
+        <div class="pill">Thema (Imposter): ${game.topic.imposter}</div>
+        <div class="card">
+          <div><b>Beschuldigt:</b> ${accused ? accused.name : '—'}</div>
+          <div><b>Imposter:</b> ${imp.name}</div>
+          <div style="margin-top:8px"><b>Ausgang:</b> ${win}</div>
+        </div>
+        <div class="card">
+          <b>Stimmen</b>
+          <div style="margin-top:8px">
+            ${Object.entries(tally).map(([pid,count])=>{
+              const p = game.players.find(x=>x.id===pid);
+              return `<div>${p ? p.name : '—'}: ${count}</div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button id="againBtn">Nochmal spielen</button>
+          <button id="resetBtn">Neue Lobby</button>
+        </div>
+      `;
+      c.querySelector('#againBtn').onclick = () => { nextRound(); render(); };
+      c.querySelector('#resetBtn').onclick = () => { game = {...game, state: State.LOBBY, players: [], votes:{}}; render(); };
+    }
+  }
+
+  function startGame() {
+    if (game.players.length < 3) return;
+    const impIndex = Math.floor(Math.random()*game.players.length);
+    game.imposterId = game.players[impIndex].id;
+    game.topic = TOPICS[Math.floor(Math.random()*TOPICS.length)];
+    game.revealIndex = 0;
+    game.votes = {};
+    game.state = State.REVEAL;
+    render();
+  }
+  function tallyVotes(votes) {
+    const t = {};
+    Object.values(votes).forEach(pid => { if (!pid) return; t[pid] = (t[pid]||0)+1; });
+    return t;
+  }
+  function computeResult() {
+    const tally = tallyVotes(game.votes);
+    const entries = Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+    const accusedId = (entries[0] && entries[1] && entries[0][1]===entries[1][1]) ? null : (entries[0]?.[0] || null);
+    game._accusedId = accusedId;
+    game.state = State.RESULT;
+    render();
+  }
+  function nextRound() {
+    const impIndex = Math.floor(Math.random()*game.players.length);
+    game.imposterId = game.players[impIndex].id;
+    game.topic = TOPICS[Math.floor(Math.random()*TOPICS.length)];
+    game.revealIndex = 0;
+    game.votes = {};
+    game.state = State.REVEAL;
+  }
+
+  // Seed players for quick test
+  game.players = [{id:uid(),name:'Alex'},{id:uid(),name:'Maya'},{id:uid(),name:'Sam'}];
+  render();
+})();
+</script>
+</body>
+</html>
