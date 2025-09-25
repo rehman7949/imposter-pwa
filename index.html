@@ -10,6 +10,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
   <style>
+<style>
 :root{
   --bg:#f5efe6;      /* heller Beigeton */
   --text:#111111;    /* schwarze Schrift */
@@ -18,24 +19,84 @@
   --border:#e8dcc6;
   --radius:18px;
 
-  /* neue, dezente Akzente – ändere sie gern */
+  /* dezente, elegante Akzente */
   --accent:#C97D60;   /* terracotta */
   --accent-2:#0FA3B1; /* teal */
 }
 
-/* elegante, dezente Linie */
-.ribbon{ 
-  height:6px; 
+/* Grundlayout */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+.wrap{ max-width:980px; margin:0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 24px }
+header{ display:flex; align-items:center; gap:12px; margin:12px 0 8px }
+.logo{
+  width:44px; height:44px; border-radius:12px;
+  background: var(--bg);
+  border:3px solid var(--accent);
+  display:grid; place-items:center; font-weight:900; font-size:18px; color:var(--accent);
+}
+h1{ font-size:clamp(22px, 4.8vw, 34px); margin:0 }
+.sub{ color:var(--muted); font-size:14px }
+
+/* Karten, Formelemente, Buttons */
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:18px; margin:16px 0; box-shadow: 0 6px 24px rgba(0,0,0,.06);
+}
+label{ display:block; font-weight:700; margin:8px 0 6px }
+input,select,button{
+  width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+  background:#fff; color:var(--text); font-size:15px;
+}
+.row{ display:flex; gap:12px; flex-wrap:wrap }
+.row > *{ flex:1 1 240px }
+.btn{
+  background:#111; color:#fff; border:none; cursor:pointer; font-weight:800; letter-spacing:.2px;
+  transition: transform .07s ease, filter .2s ease;
+}
+.btn:active{ transform: translateY(1px) }
+.btn[disabled]{ filter: grayscale(1) opacity(.6); cursor:not-allowed }
+.btn-outline{ background:#fff; border:1px solid var(--border); color:var(--text); }
+.muted{ color:var(--muted) }
+.pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff }
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px }
+.player-tag{ background:#fff; border:1px dashed var(--border); padding:10px 12px; border-radius:12px }
+.big{ font-size: clamp(26px, 6vw, 46px); font-weight:900; letter-spacing:.5px; margin: 16px 0 }
+.center{ text-align:center }
+.kicker{ font-size:12px; text-transform:uppercase; letter-spacing:.18em; color:#666 }
+
+/* elegante, dezente Linie oben/unten */
+.ribbon{
+  height:6px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  border-radius:999px; 
+  border-radius:999px;
   opacity:.75;
   box-shadow: 0 2px 8px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.25);
 }
-.ribbon.thin{ 
-  height:3px; 
-  opacity:.9; 
+.ribbon.thin{ height:3px; opacity:.9 }
+
+/* Reveal-Karte (Swipe-up) */
+.reveal-wrap{ position:relative; height:210px; border-radius:16px; overflow:hidden; background:#fff; border:1px solid var(--border) }
+.reveal-content{ position:absolute; inset:0; display:grid; place-items:center; padding:16px }
+.reveal-scrim{
+  position:absolute; inset:0; background:var(--card); border-top:6px solid var(--accent-2);
+  display:flex; align-items:flex-end; justify-content:center; padding:12px;
+  transform: translateY(0); touch-action:none; cursor:grab;
+  transition: transform .18s ease;
 }
-  </style>
+.scrim-handle{ width:54px; height:6px; background:#ccc; border-radius:999px; margin-bottom:10px }
+.scrim-label{ font-size:13px; color:var(--muted); margin-bottom:12px }
+
+/* RTL für Arabisch */
+[dir="rtl"] .row{ flex-direction: row-reverse }
+[dir="rtl"] select, [dir="rtl"] input{ direction: rtl }
+
+footer{ margin-top:20px; color:var(--muted); font-size:12px }
+</style>
 </head>
 <body>
   <div class="ribbon"></div>
