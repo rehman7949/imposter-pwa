@@ -648,72 +648,45 @@ if (game.state===State.REVEAL){
     </div>
   `;
 
-  // Inhalt setzen (Wort + Imposter-Tag)
-  // Inhalt setzen (Wort + Imposter-Tag)
-const isImp = current.id === game.imposterId;
-const word = isImp ? game.topic.imposter : game.topic.common;
-const wordEl = c.querySelector('#wordVal');
-const impEl  = c.querySelector('#impTag');
+  // --- Inhalt erst NACH dem Reveal setzen
+  const isImp = current.id === game.imposterId;
+  const word  = isImp ? game.topic.imposter : game.topic.common;
+  const wordEl = c.querySelector('#wordVal');
+  const impEl  = c.querySelector('#impTag');
+  wordEl.textContent = '•••';
+  impEl.style.display = 'none';
 
-// Inhalt erst NACH dem Reveal setzen
-const isImp = current.id === game.imposterId;
-const word  = isImp ? game.topic.imposter : game.topic.common;
-const wordEl = c.querySelector('#wordVal');
-const impEl  = c.querySelector('#impTag');
+  // --- Drag-to-reveal
+  const scrim = c.querySelector('#scrim');
+  const nextBtn = c.querySelector('#nextBtn');
+  let startY = null, revealed = false, H = 0;
 
-// Vor Reveal: Platzhalter stehen lassen, Hinweis verborgen
-wordEl.textContent = "•••";
-impEl.style.display = 'none';
+  function setY(y){
+    const clamped = Math.max(-H, Math.min(0, y));
+    scrim.style.transform = `translateY(${clamped}px)`;
+    if (-clamped >= H * 0.6 && !revealed) {
+      revealed = true;
+      nextBtn.disabled = false;
+      scrim.style.pointerEvents = 'none';
+      scrim.style.transform = 'translateY(-100%)';
+      // Jetzt ERST echtes Wort anzeigen
+      wordEl.textContent = word;
+      if (isImp) impEl.style.display = 'inline-flex';
+    }
+  }
 
-  // Drag-to-reveal und „Button erst nach Reveal aktiv“
-const scrim = c.querySelector('#scrim');
-const nextBtn = c.querySelector('#nextBtn');
-let startY = null, curY = 0, revealed = false;
-let H = 0;
+  const onStart = y => { H = scrim.getBoundingClientRect().height; startY = y; scrim.style.transition='none'; };
+  const onMove  = y => { if(startY===null) return; const dy = y - startY; if (dy < 0) setY(dy); };
+  const onEnd   = () => { scrim.style.transition='transform .18s ease'; scrim.style.transform = revealed ? 'translateY(-100%)' : 'translateY(0)'; startY=null; };
 
-function clamp(min, val, max){ return Math.max(min, Math.min(max, val)); }
-
-function setY(y){
-  curY = clamp(-H, y, 0);
-  scrim.style.transform = `translateY(${curY}px)`;
-  if (-curY >= H * 0.6 && !revealed) {
-  revealed = true;
-  nextBtn.disabled = false;
-  scrim.style.pointerEvents = 'none';
-  scrim.style.transform = 'translateY(-100%)';
-
-  // >>> jetzt ERST Wort & Hinweis schreiben/anzeigen
-  wordEl.textContent = word;
-  if (isImp) impEl.style.display = 'inline-flex';
-}
-}
-
-const onStart = (clientY)=>{
-  H = scrim.getBoundingClientRect().height;   // aktuelle Höhe
-  startY = clientY;
-  scrim.style.transition = 'none';
-};
-const onMove = (clientY)=>{
-  if(startY===null) return;
-  const dy = clientY - startY;
-  if (dy < 0) setY(dy);
-};
-const onEnd = ()=>{
-  scrim.style.transition = 'transform .18s ease';
-  if (revealed) scrim.style.transform = 'translateY(-100%)';
-  else scrim.style.transform = 'translateY(0)';
-  startY = null;
-};
-
-scrim.addEventListener('pointerdown', e=>{ scrim.setPointerCapture(e.pointerId); onStart(e.clientY); });
-scrim.addEventListener('pointermove', e=>onMove(e.clientY));
-scrim.addEventListener('pointerup', onEnd);
-scrim.addEventListener('pointercancel', onEnd);
+  scrim.addEventListener('pointerdown', e=>{ scrim.setPointerCapture(e.pointerId); onStart(e.clientY); });
+  scrim.addEventListener('pointermove', e=>onMove(e.clientY));
+  scrim.addEventListener('pointerup', onEnd);
+  scrim.addEventListener('pointercancel', onEnd);
 
   nextBtn.onclick = ()=>{
     game.revealIndex++;
     if (game.revealIndex >= game.players.length){
-      // zufälligen Starter wählen und in DISCUSS wechseln
       const startIdx = Math.floor(Math.random()*game.players.length);
       game.starterId = game.players[startIdx].id;
       game.state = State.DISCUSS;
@@ -721,8 +694,8 @@ scrim.addEventListener('pointercancel', onEnd);
     }
     render();
   };
-
   return;
+}
 }
       if (game.state===State.DISCUSS){
         const c = document.createElement('div'); c.className='card'; app.appendChild(c);
