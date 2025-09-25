@@ -10,78 +10,31 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
   <style>
-    :root{
-      --bg:#f5efe6;      /* heller Beigeton */
-      --text:#111111;    /* schwarze Schrift */
-      --muted:#5a5a5a;
-      --card:#fffaf2;    /* helles Karten-Beige */
-      --line-red:#d13b3b; /* elegante rote Linie */
-      --line-green:#1d9a6c; /* elegante grüne Linie */
-      --border:#e8dcc6;
-      --radius:18px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    }
-    .wrap{ max-width:980px; margin:0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 24px }
-    /* elegante Linien */
-    .ribbon{ height:8px; background:
-      linear-gradient(90deg, var(--line-red) 0 50%, var(--line-green) 50% 100%); border-radius:999px; opacity:.8 }
-    .ribbon.thin{ height:4px; opacity:.9; }
-    header{ display:flex; align-items:center; gap:12px; margin:12px 0 8px }
-    .logo{
-      width:44px; height:44px; border-radius:12px;
-      background: var(--bg);
-      border:3px solid var(--line-red);
-      display:grid; place-items:center; font-weight:900; font-size:18px; color:var(--line-red);
-    }
-    h1{ font-size:clamp(22px, 4.8vw, 34px); margin:0 }
-    .sub{ color:var(--muted); font-size:14px }
-    .card{
-      background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-      padding:18px; margin:16px 0; box-shadow: 0 6px 24px rgba(0,0,0,.06);
-    }
-    label{ display:block; font-weight:700; margin:8px 0 6px }
-    input,select,button{
-      width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:#fff; color:var(--text); font-size:15px;
-    }
-    .row{ display:flex; gap:12px; flex-wrap:wrap }
-    .row > *{ flex:1 1 240px }
-    .btn{
-      background:#111; color:#fff; border:none; cursor:pointer; font-weight:800; letter-spacing:.2px;
-      transition: transform .07s ease, filter .2s ease;
-    }
-    .btn:active{ transform: translateY(1px) }
-    .btn[disabled]{ filter: grayscale(1) opacity(.6); cursor:not-allowed }
-    .btn-outline{ background:#fff; border:1px solid var(--border); }
-    .muted{ color:var(--muted) }
-    .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff }
-    .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px }
-    .player-tag{ background:#fff; border:1px dashed var(--border); padding:10px 12px; border-radius:12px }
-    .big{ font-size: clamp(26px, 6vw, 46px); font-weight:900; letter-spacing:.5px; margin: 16px 0 }
-    .center{ text-align:center }
+:root{
+  --bg:#f5efe6;      /* heller Beigeton */
+  --text:#111111;    /* schwarze Schrift */
+  --muted:#5a5a5a;
+  --card:#fffaf2;
+  --border:#e8dcc6;
+  --radius:18px;
 
-    /* Swipe-Reveal-Karte */
-    .reveal-wrap{ position:relative; height:210px; border-radius:16px; overflow:hidden; background:#fff; border:1px solid var(--border) }
-    .reveal-content{ position:absolute; inset:0; display:grid; place-items:center; padding:16px }
-    .reveal-scrim{
-      position:absolute; inset:0; background:var(--card); border-top:6px solid var(--line-green);
-      display:flex; align-items:flex-end; justify-content:center; padding:12px;
-      transform: translateY(0); touch-action:none; cursor:grab;
-      transition: transform .18s ease;
-    }
-    .scrim-handle{ width:54px; height:6px; background:#ccc; border-radius:999px; margin-bottom:10px }
-    .scrim-label{ font-size:13px; color:var(--muted); margin-bottom:12px }
-    .kicker{ font-size:12px; text-transform:uppercase; letter-spacing:.18em; color:#666 }
+  /* neue, dezente Akzente – ändere sie gern */
+  --accent:#C97D60;   /* terracotta */
+  --accent-2:#0FA3B1; /* teal */
+}
 
-    /* RTL Support */
-    [dir="rtl"] .row{ flex-direction: row-reverse }
-    [dir="rtl"] select, [dir="rtl"] input{ direction: rtl }
-
-    footer{ margin-top:20px; color:var(--muted); font-size:12px }
+/* elegante, dezente Linie */
+.ribbon{ 
+  height:6px; 
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius:999px; 
+  opacity:.75;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.ribbon.thin{ 
+  height:3px; 
+  opacity:.9; 
+}
   </style>
 </head>
 <body>
@@ -109,6 +62,8 @@
     // ---------- Internationalisierung ----------
     const i18n = {
       de: {
+        next_player: "Nächster Spieler",
+        start_round: "Spiel starten",
         start_title: "Willkommen",
         start_sub: "Wähle Sprache & Kategorie",
         language: "Sprache",
@@ -146,6 +101,8 @@
         begin_prompt: "Beginnen muss: <b>{name}</b>"
       },
       en: {
+        next_player: "Next player",
+        start_round: "Start round",
         start_title: "Welcome",
         start_sub: "Choose language & category",
         language: "Language",
@@ -183,6 +140,8 @@
         begin_prompt: "Starting player: <b>{name}</b>"
       },
       ar: {
+        next_player: "اللاعب التالي",
+        start_round: "ابدأ الجولة",
         start_title: "مرحبًا",
         start_sub: "اختر اللغة والفئة",
         language: "اللغة",
@@ -485,74 +444,86 @@
         return;
       }
 
-      if (game.state===State.REVEAL){
-        const current = game.players[game.revealIndex];
-        const c = document.createElement('div'); c.className='card'; app.appendChild(c);
-        c.innerHTML = `
-          <div class="kicker">${t('reveal_title')}</div>
-          <div class="muted">${t('pass_device_to', {name: current.name})}</div>
+if (game.state===State.REVEAL){
+  const current = game.players[game.revealIndex];
+  const c = document.createElement('div'); c.className='card'; app.appendChild(c);
 
-          <div class="reveal-wrap" style="margin-top:12px">
-            <div class="reveal-content">
-              <div class="big" id="wordVal" style="text-align:center">•••</div>
-              <div class="pill" id="impTag" style="margin-top:8px; display:none">${t('you_are_imposter')}</div>
-            </div>
-            <div class="reveal-scrim" id="scrim">
-              <div style="width:100%; display:flex; flex-direction:column; align-items:center">
-                <div class="scrim-handle"></div>
-                <div class="scrim-label">${t('swipe_up')}</div>
-              </div>
-            </div>
-          </div>
+  const isLast = game.revealIndex >= game.players.length - 1;
+  const nextLabel = isLast ? t('start_round') : t('next_player');
 
-          <div class="row" style="margin-top:12px">
-            <button id="doneBtn" class="btn btn-outline">${t('done')}</button>
-          </div>
-        `;
+  c.innerHTML = `
+    <div class="kicker">${t('reveal_title')}</div>
+    <div class="muted">${t('pass_device_to', {name: current.name})}</div>
 
-        // set content
-        const isImp = current.id === game.imposterId;
-        const word = isImp ? game.topic.imposter : game.topic.common;
-        c.querySelector('#wordVal').textContent = word;
-        if(isImp) c.querySelector('#impTag').style.display = 'inline-flex';
+    <div class="reveal-wrap" style="margin-top:12px">
+      <div class="reveal-content">
+        <div class="big" id="wordVal" style="text-align:center">•••</div>
+        <div class="pill" id="impTag" style="margin-top:8px; display:none">${t('you_are_imposter')}</div>
+      </div>
+      <div class="reveal-scrim" id="scrim">
+        <div style="width:100%; display:flex; flex-direction:column; align-items:center">
+          <div class="scrim-handle"></div>
+          <div class="scrim-label">${t('swipe_up')}</div>
+        </div>
+      </div>
+    </div>
 
-        // drag-to-reveal
-        const scrim = c.querySelector('#scrim');
-        let startY = null, curY = 0;
-        function setY(y){
-          curY = Math.max(-180, Math.min(0, y));
-          scrim.style.transform = `translateY(${curY}px)`;
-        }
-        const onStart = (clientY)=>{ startY = clientY; scrim.style.transition='none'; };
-        const onMove = (clientY)=>{
-          if(startY===null) return;
-          const dy = clientY - startY;
-          if (dy < 0) setY(dy); // only upwards
-        };
-        const onEnd = ()=>{
-          scrim.style.transition='transform .18s ease';
-          if (curY < -90) setY(-210); else setY(0);
-          startY = null;
-        };
-        scrim.addEventListener('pointerdown', e=>{ scrim.setPointerCapture(e.pointerId); onStart(e.clientY); });
-        scrim.addEventListener('pointermove', e=>onMove(e.clientY));
-        scrim.addEventListener('pointerup', onEnd);
-        scrim.addEventListener('pointercancel', onEnd);
+    <div class="row" style="margin-top:12px">
+      <button id="nextBtn" class="btn" disabled>${nextLabel}</button>
+    </div>
+  `;
 
-        c.querySelector('#doneBtn').onclick = ()=>{
-          game.revealIndex++;
-          if (game.revealIndex >= game.players.length){
-            // wähle zufälligen Starter
-            const startIdx = Math.floor(Math.random()*game.players.length);
-            game.starterId = game.players[startIdx].id;
-            game.state = State.DISCUSS;
-            game.discussEndsAt = now() + game.options.discussSeconds*1000;
-          }
-          render();
-        };
-        return;
-      }
+  // Inhalt setzen (Wort + Imposter-Tag)
+  const isImp = current.id === game.imposterId;
+  const word = isImp ? game.topic.imposter : game.topic.common;
+  c.querySelector('#wordVal').textContent = word;
+  if (isImp) c.querySelector('#impTag').style.display = 'inline-flex';
 
+  // Drag-to-reveal und „Button erst nach Reveal aktiv“
+  const scrim = c.querySelector('#scrim');
+  const nextBtn = c.querySelector('#nextBtn');
+  let startY = null, curY = 0, revealed = false;
+
+  function setY(y){
+    curY = Math.max(-180, Math.min(0, y));
+    scrim.style.transform = `translateY(${curY}px)`;
+    if (curY <= -120 && !revealed) {
+      revealed = true;
+      nextBtn.disabled = false;           // JETZT ist der Button aktiv
+      scrim.style.pointerEvents = 'none'; // scrim „parkt“ oben
+    }
+  }
+  const onStart = (clientY)=>{ startY = clientY; scrim.style.transition='none'; };
+  const onMove = (clientY)=>{
+    if(startY===null) return;
+    const dy = clientY - startY;
+    if (dy < 0) setY(dy); // only upwards
+  };
+  const onEnd = ()=>{
+    scrim.style.transition='transform .18s ease';
+    if (revealed) { setY(-210); } else { setY(0); }
+    startY = null;
+  };
+
+  scrim.addEventListener('pointerdown', e=>{ scrim.setPointerCapture(e.pointerId); onStart(e.clientY); });
+  scrim.addEventListener('pointermove', e=>onMove(e.clientY));
+  scrim.addEventListener('pointerup', onEnd);
+  scrim.addEventListener('pointercancel', onEnd);
+
+  nextBtn.onclick = ()=>{
+    game.revealIndex++;
+    if (game.revealIndex >= game.players.length){
+      // zufälligen Starter wählen und in DISCUSS wechseln
+      const startIdx = Math.floor(Math.random()*game.players.length);
+      game.starterId = game.players[startIdx].id;
+      game.state = State.DISCUSS;
+      game.discussEndsAt = now() + game.options.discussSeconds*1000;
+    }
+    render();
+  };
+
+  return;
+}
       if (game.state===State.DISCUSS){
         const c = document.createElement('div'); c.className='card'; app.appendChild(c);
         const starter = game.players.find(p=>p.id===game.starterId);
