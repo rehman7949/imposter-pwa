@@ -649,13 +649,21 @@ if (game.state===State.REVEAL){
   `;
 
   // Inhalt setzen (Wort + Imposter-Tag)
-  const isImp = current.id === game.imposterId;
-  const word = isImp ? game.topic.imposter : game.topic.common;
-  c.querySelector('#wordVal').textContent = word;
-  if (isImp) c.querySelector('#impTag').style.display = 'inline-flex';
+  // Inhalt setzen (Wort + Imposter-Tag)
+const isImp = current.id === game.imposterId;
+const word = isImp ? game.topic.imposter : game.topic.common;
+const wordEl = c.querySelector('#wordVal');
+const impEl  = c.querySelector('#impTag');
+
+wordEl.textContent = word;
+if (isImp) impEl.style.display = 'inline-flex';
+
+// >>> NEU: bis zum Aufdecken unsichtbar
+wordEl.style.opacity = '0';
+impEl.style.opacity  = '0';
 
   // Drag-to-reveal und „Button erst nach Reveal aktiv“
-  const scrim = c.querySelector('#scrim');
+const scrim = c.querySelector('#scrim');
 const nextBtn = c.querySelector('#nextBtn');
 let startY = null, curY = 0, revealed = false;
 let H = 0;
@@ -665,12 +673,18 @@ function clamp(min, val, max){ return Math.max(min, Math.min(max, val)); }
 function setY(y){
   curY = clamp(-H, y, 0);
   scrim.style.transform = `translateY(${curY}px)`;
-  if (-curY >= H * 0.6 && !revealed) {     // ab ~60% hochgezogen
-    revealed = true;
-    nextBtn.disabled = false;
-    scrim.style.pointerEvents = 'none';
-    scrim.style.transform = 'translateY(-100%)'; // komplett weg
-  }
+  if (-curY >= H * 0.6 && !revealed) {
+  revealed = true;
+  nextBtn.disabled = false;
+  scrim.style.pointerEvents = 'none';
+  scrim.style.transform = 'translateY(-100%)';
+
+  // >>> NEU: Inhalt einblenden
+  wordEl.style.transition = 'opacity .15s ease';
+  impEl.style.transition  = 'opacity .15s ease';
+  wordEl.style.opacity = '1';
+  impEl.style.opacity  = '1';
+}
 }
 
 const onStart = (clientY)=>{
