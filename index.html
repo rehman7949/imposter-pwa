@@ -23,6 +23,8 @@
   --accent:#C97D60;   /* terracotta */
   --accent-2:#0FA3B1; /* teal */
 }
+.topbar { display:flex; justify-content:flex-start; margin:8px 0 0; }
+.btn.small { padding:8px 12px; font-size:13px; border-radius:10px; }
 
 /* Grundlayout */
 *{box-sizing:border-box}
@@ -123,6 +125,7 @@ footer{ margin-top:20px; color:var(--muted); font-size:12px }
     // ---------- Internationalisierung ----------
     const i18n = {
       de: {
+        back_to_start: "Zur Startseite",
         next_player: "Nächster Spieler",
         start_round: "Spiel starten",
         start_title: "Willkommen",
@@ -162,6 +165,7 @@ footer{ margin-top:20px; color:var(--muted); font-size:12px }
         begin_prompt: "Beginnen muss: <b>{name}</b>"
       },
       en: {
+        back_to_start: "Back to start",
         next_player: "Next player",
         start_round: "Start round",
         start_title: "Welcome",
@@ -201,6 +205,7 @@ footer{ margin-top:20px; color:var(--muted); font-size:12px }
         begin_prompt: "Starting player: <b>{name}</b>"
       },
       ar: {
+        back_to_start: "الرجوع للصفحة الرئيسية",
         next_player: "اللاعب التالي",
         start_round: "ابدأ الجولة",
         start_title: "مرحبًا",
@@ -508,6 +513,20 @@ footer{ margin-top:20px; color:var(--muted); font-size:12px }
 
     function render(){
       const app = $('#app'); app.innerHTML='';
+
+      // Back-to-Start oben anzeigen, außer auf dem Startscreen
+if (game.state !== State.START) {
+  const top = document.createElement('div');
+  top.className = 'topbar';
+  top.innerHTML = `<button id="backStart" class="btn btn-outline small">◀ ${t('back_to_start')}</button>`;
+  app.appendChild(top);
+
+  top.querySelector('#backStart').onclick = () => {
+    // Nur den State zurücksetzen → Sprache & Kategorie bleiben erhalten
+    game.state = State.START;
+    render();
+  };
+}
 
       if (game.state===State.START){
         const c = document.createElement('div'); c.className='card'; app.appendChild(c);
