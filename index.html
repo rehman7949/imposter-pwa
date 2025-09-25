@@ -656,34 +656,44 @@ if (game.state===State.REVEAL){
 
   // Drag-to-reveal und „Button erst nach Reveal aktiv“
   const scrim = c.querySelector('#scrim');
-  const nextBtn = c.querySelector('#nextBtn');
-  let startY = null, curY = 0, revealed = false;
+const nextBtn = c.querySelector('#nextBtn');
+let startY = null, curY = 0, revealed = false;
+let H = 0;
 
-  function setY(y){
-    curY = Math.max(-180, Math.min(0, y));
-    scrim.style.transform = `translateY(${curY}px)`;
-    if (curY <= -120 && !revealed) {
-      revealed = true;
-      nextBtn.disabled = false;           // JETZT ist der Button aktiv
-      scrim.style.pointerEvents = 'none'; // scrim „parkt“ oben
-    }
+function clamp(min, val, max){ return Math.max(min, Math.min(max, val)); }
+
+function setY(y){
+  curY = clamp(-H, y, 0);
+  scrim.style.transform = `translateY(${curY}px)`;
+  if (-curY >= H * 0.6 && !revealed) {     // ab ~60% hochgezogen
+    revealed = true;
+    nextBtn.disabled = false;
+    scrim.style.pointerEvents = 'none';
+    scrim.style.transform = 'translateY(-100%)'; // komplett weg
   }
-  const onStart = (clientY)=>{ startY = clientY; scrim.style.transition='none'; };
-  const onMove = (clientY)=>{
-    if(startY===null) return;
-    const dy = clientY - startY;
-    if (dy < 0) setY(dy); // only upwards
-  };
-  const onEnd = ()=>{
-    scrim.style.transition='transform .18s ease';
-    if (revealed) { setY(-210); } else { setY(0); }
-    startY = null;
-  };
+}
 
-  scrim.addEventListener('pointerdown', e=>{ scrim.setPointerCapture(e.pointerId); onStart(e.clientY); });
-  scrim.addEventListener('pointermove', e=>onMove(e.clientY));
-  scrim.addEventListener('pointerup', onEnd);
-  scrim.addEventListener('pointercancel', onEnd);
+const onStart = (clientY)=>{
+  H = scrim.getBoundingClientRect().height;   // aktuelle Höhe
+  startY = clientY;
+  scrim.style.transition = 'none';
+};
+const onMove = (clientY)=>{
+  if(startY===null) return;
+  const dy = clientY - startY;
+  if (dy < 0) setY(dy);
+};
+const onEnd = ()=>{
+  scrim.style.transition = 'transform .18s ease';
+  if (revealed) scrim.style.transform = 'translateY(-100%)';
+  else scrim.style.transform = 'translateY(0)';
+  startY = null;
+};
+
+scrim.addEventListener('pointerdown', e=>{ scrim.setPointerCapture(e.pointerId); onStart(e.clientY); });
+scrim.addEventListener('pointermove', e=>onMove(e.clientY));
+scrim.addEventListener('pointerup', onEnd);
+scrim.addEventListener('pointercancel', onEnd);
 
   nextBtn.onclick = ()=>{
     game.revealIndex++;
