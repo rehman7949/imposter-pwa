@@ -655,12 +655,15 @@ const word = isImp ? game.topic.imposter : game.topic.common;
 const wordEl = c.querySelector('#wordVal');
 const impEl  = c.querySelector('#impTag');
 
-wordEl.textContent = word;
-if (isImp) impEl.style.display = 'inline-flex';
+// Inhalt erst NACH dem Reveal setzen
+const isImp = current.id === game.imposterId;
+const word  = isImp ? game.topic.imposter : game.topic.common;
+const wordEl = c.querySelector('#wordVal');
+const impEl  = c.querySelector('#impTag');
 
-// >>> NEU: bis zum Aufdecken unsichtbar
-wordEl.style.opacity = '0';
-impEl.style.opacity  = '0';
+// Vor Reveal: Platzhalter stehen lassen, Hinweis verborgen
+wordEl.textContent = "•••";
+impEl.style.display = 'none';
 
   // Drag-to-reveal und „Button erst nach Reveal aktiv“
 const scrim = c.querySelector('#scrim');
@@ -679,11 +682,9 @@ function setY(y){
   scrim.style.pointerEvents = 'none';
   scrim.style.transform = 'translateY(-100%)';
 
-  // >>> NEU: Inhalt einblenden
-  wordEl.style.transition = 'opacity .15s ease';
-  impEl.style.transition  = 'opacity .15s ease';
-  wordEl.style.opacity = '1';
-  impEl.style.opacity  = '1';
+  // >>> jetzt ERST Wort & Hinweis schreiben/anzeigen
+  wordEl.textContent = word;
+  if (isImp) impEl.style.display = 'inline-flex';
 }
 }
 
